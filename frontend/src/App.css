@@ -1,0 +1,9 @@
+.app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.form-container { max-width: 500px; margin: 50px auto; }
+.form-container input, select { width: 100%; padding: 10px; margin: 10px 0; }
+button { background: #4285f4; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; }
+.roadmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+.roadmap-card { border: 1px solid #ddd; padding: 20px; border-radius: 10px; background: #f9f9f9; }
+.progress-actions button { margin: 5px; background: #34a853; }
+.regenerate { background: #ea4335; margin-top: 30px; }
+.text-primary { color: #4285f4; }
