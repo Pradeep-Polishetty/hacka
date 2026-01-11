@@ -1,37 +1,21 @@
 const mongoose = require('mongoose');
 
-const RoadmapSchema = new mongoose.Schema(
-  {
-    roadmapId: { type: String, required: true, unique: true },
-    userData: {
-      year: { type: String, required: true },       
-      skills: { type: [String], required: true },   
-      companies: { type: [String], required: true },  
-      interests: { type: [String], default: [] }    
-    },
-    roadmap: { 
-      type: Array, 
-      required: true,
-      // Each roadmap stage structure:
-      // {
-      //   title: String,
-      //   tasks: [String],
-      //   daily_goal: String,
-      //   why_important: String
-      // }
-    },
-    progressLogs: { 
-      type: Array, 
-      default: [],
-      // Each progress log structure:
-      // {
-      //   stage: Number,
-      //   completion_rate: Number,
-      //   date: String
-      // }
-    }
+const RoadmapSchema = new mongoose.Schema({
+  roadmapId: { type: String, required: true, unique: true },
+  userData: {
+    year: String,
+    skills: [String],
+    companies: [String],
+    weeks: { type: Number, default: 4 }
   },
-  { timestamps: true }
-);
+  roadmap: [mongoose.Schema.Types.Mixed],
+  progressLogs: [{
+    weekIndex: Number,
+    progress: Number,
+    timestamp: { type: Date, default: Date.now },
+    note: String
+  }]
+}, { timestamps: true });
 
+RoadmapSchema.index({ roadmapId: 1 });
 module.exports = mongoose.model('Roadmap', RoadmapSchema);

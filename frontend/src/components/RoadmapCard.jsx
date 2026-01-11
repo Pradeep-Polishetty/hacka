@@ -1,212 +1,141 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function RoadmapCard({ stage, index, onProgress, currentProgress }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+export default function RoadmapCard({ stage, index, onProgress, progress = 0 }) {
+  // FIXED: Use progress prop to control local state instead of independent completed state
+  const [showSuccess, setShowSuccess] = useState(false);
+  const isCompleted = progress === 1.0;
 
-  const handleProgressUpdate = (rate) => {
-    onProgress(index, rate);
-    if (rate === 1.0) {
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 3000);
+  // Show success message briefly when progress changes to 1.0
+  useEffect(() => {
+    if (progress === 1.0) {
+      setShowSuccess(true);
+      const timer = setTimeout(() => setShowSuccess(false), 2000);
+      return () => clearTimeout(timer);
     }
-  };
-
-  const getProgressBadge = () => {
-    if (currentProgress === 1.0) return { text: 'Completed', class: 'bg-success' };
-    if (currentProgress === 0.5) return { text: '50% Done', class: 'bg-warning' };
-    if (currentProgress > 0) return { text: 'In Progress', class: 'bg-info' };
-    return { text: 'Not Started', class: 'bg-secondary' };
-  };
-
-  const progressBadge = getProgressBadge();
+  }, [progress]);
 
   return (
-    <div className="roadmap-card-wrapper">
-      {/* Timeline Dot */}
-      <div className="timeline-dot-container">
-        <div className={`timeline-dot ${currentProgress === 1.0 ? 'completed' : ''}`}>
-          {currentProgress === 1.0 ? (
-            <i className="fas fa-check text-white"></i>
-          ) : (
-            <span>{index + 1}</span>
-          )}
+    <div 
+      className="card border-0 shadow-lg h-100 transition-all rounded-4"
+      style={{ 
+        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+        border: 'progress === 1.0 ? "1px solid rgba(40,167,69,0.3)" : "1px solid rgba(0,123,255,0.1)"'
+      }}
+    >
+      {/* Card Header with Progress Bar */}
+      <div className="card-header bg-primary bg-gradient text-white p-4 rounded-top-4">
+        <div className="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h3 className="h5 fw-bold mb-1 lh-sm">{stage.title}</h3>
+            <small className="opacity-90">{`Week ${Math.floor(index / 3) + 1}, Day ${index + 1}`}</small>
+          </div>
+          <div className="progress mb-0" style={{ height: '6px', width: '80px' }}>
+            <div 
+              className="progress-bar bg-success" 
+              role="progressbar"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
         </div>
-        <div className="timeline-line"></div>
+        
+        {/* Daily Goal Badge */}
+        <div className="bg-white bg-opacity-20 rounded-pill px-3 py-1 d-inline-block">
+          <i className="bi bi-lightning-charge-fill me-1"></i>
+          <small className="fw-semibold">{stage.daily_goal}</small>
+        </div>
       </div>
 
-      {/* Card Content */}
-      <div className="roadmap-card">
-        {/* Clickable Header to Expand/Collapse */}
-        <div 
-          className="card-header-custom" 
-          onClick={() => setIsExpanded(!isExpanded)}
-          style={{ cursor: 'pointer' }}
-        >
-          <div className="d-flex justify-content-between align-items-start">
-            <div className="flex-grow-1">
-              <div className="d-flex align-items-center mb-2">
-                <span className="stage-number">Stage {index + 1}</span>
-                <span className={`badge ${progressBadge.class} ms-2`}>
-                  {progressBadge.text}
-                </span>
+      {/* Card Body */}
+      <div className="card-body p-4 pb-2">
+        {/* Tasks List */}
+        <div className="mb-4">
+          <small className="text-uppercase fw-bold text-primary mb-2 d-block">Tasks</small>
+          <div className="mt-2">
+            {stage.tasks.map((task, i) => (
+              <div key={i} className="d-flex align-items-start gap-2 p-2 bg-light rounded-3 mb-2">
+                <div className="rounded-circle bg-primary bg-opacity-20 p-1 mt-1 flex-shrink-0 d-flex align-items-center justify-content-center" 
+                     style={{width: '12px', height: '12px'}}>
+                  <i className="bi bi-circle-fill text-primary" style={{fontSize: '8px'}}></i>
+                </div>
+                <span className="small lh-sm flex-grow-1">{task}</span>
               </div>
-              <h3 className="card-title mb-2">{stage.title}</h3>
-              <p className="card-subtitle text-muted mb-0">
-                <i className="fas fa-clock me-2"></i>{stage.daily_goal}
-              </p>
-            </div>
-            <button 
-              className="btn btn-link text-muted p-0" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-            >
-              <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
-            </button>
+            ))}
           </div>
         </div>
 
-        {/* Expandable Content */}
-        <div className={`card-body-custom ${isExpanded ? 'expanded' : ''}`}>
-          {/* Why Important */}
-          <div className="importance-box mb-4">
-            <div className="d-flex align-items-start">
-              <i className="fas fa-lightbulb text-warning me-2 mt-1"></i>
-              <div>
-                <strong className="d-block mb-1">Why This Matters:</strong>
-                <p className="mb-0 text-muted">{stage.why_important}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Tasks */}
-          <div className="tasks-section mb-4">
-            <h6 className="fw-bold mb-3">
-              <i className="fas fa-list-check me-2"></i>Tasks to Complete:
-            </h6>
-            <ul className="task-list">
-              {stage.tasks.map((task, i) => (
-                <li key={i} className="task-item">
-                  <i className="fas fa-circle text-primary me-2" style={{fontSize: '6px'}}></i>
-                  {task}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources Section */}
-          {stage.resources && stage.resources.length > 0 && (
-            <div className="resources-section mb-4">
-              <h6 className="fw-bold mb-3">
-                <i className="fas fa-book-open me-2"></i>Recommended Resources:
-              </h6>
-              <div className="resources-list">
-                {stage.resources.map((resource, i) => (
-                  <a 
-                    key={i} 
-                    href={resource.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="resource-item"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="d-flex align-items-start">
-                      <div className="resource-icon">
-                        <i className={`fas ${
-                          resource.type === 'video' ? 'fa-video' :
-                          resource.type === 'article' ? 'fa-newspaper' :
-                          resource.type === 'course' ? 'fa-graduation-cap' :
-                          resource.type === 'documentation' ? 'fa-file-code' :
-                          resource.type === 'practice' ? 'fa-code' :
-                          'fa-link'
-                        }`}></i>
-                      </div>
-                      <div className="flex-grow-1">
-                        <p className="resource-title mb-1">{resource.title}</p>
-                        {resource.description && (
-                          <p className="resource-description mb-0">{resource.description}</p>
-                        )}
-                        <span className="resource-badge">
-                          {resource.type || 'Resource'}
-                        </span>
-                      </div>
-                      <i className="fas fa-external-link-alt text-muted ms-2"></i>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Progress Actions */}
-          <div className="progress-actions">
-            <p className="small text-muted mb-2">Update your progress:</p>
-            <div className="btn-group w-100" role="group">
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleProgressUpdate(1.0);
-                }}
-                className="btn btn-outline-success"
-                disabled={currentProgress === 1.0}
-              >
-                <i className="fas fa-check-circle me-1"></i>
-                Completed
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleProgressUpdate(0.5);
-                }}
-                className="btn btn-outline-warning"
-              >
-                <i className="fas fa-clock me-1"></i>
-                50% Done
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleProgressUpdate(0.0);
-                }}
-                className="btn btn-outline-secondary"
-              >
-                <i className="fas fa-circle me-1"></i>
-                Not Started
-              </button>
-            </div>
-          </div>
-
-          {/* Success Message */}
-          {showSuccessMessage && (
-            <div className="alert alert-success mt-3 mb-0 d-flex align-items-center">
-              <i className="fas fa-check-circle me-2"></i>
-              <span>Great job! Progress logged successfully! 🎉</span>
-            </div>
-          )}
-        </div>
-
-        {/* Quick View (when collapsed) */}
-        {!isExpanded && (
-          <div 
-            className="card-footer-custom"
-            onClick={() => setIsExpanded(true)}
-            style={{ cursor: 'pointer' }}
-          >
-            <small className="text-muted">
-              <i className="fas fa-tasks me-1"></i>
-              {stage.tasks.length} tasks
-              {stage.resources && stage.resources.length > 0 && (
-                <>
-                  <span className="mx-2">•</span>
-                  <i className="fas fa-book-open me-1"></i>
-                  {stage.resources.length} resources
-                </>
-              )}
-              <span className="mx-2">•</span>
-              Click to expand
+        {/* Why Important */}
+        {stage.why_important && (
+          <div className="mb-4 p-3 bg-warning bg-opacity-10 border-start border-4 border-warning rounded-3">
+            <small className="text-warning fw-bold mb-1 d-block">
+              <i className="bi bi-lightbulb me-1"></i>Why This Matters
             </small>
+            <p className="mb-0 small text-muted lh-sm">{stage.why_important}</p>
+          </div>
+        )}
+
+        {/* Resources */}
+        {stage.resources && stage.resources.length > 0 && (
+          <div className="mb-4">
+            <small className="text-uppercase fw-bold text-success mb-2 d-block">
+              Resources <span className="badge bg-success bg-opacity-20">{stage.resources.length}</span>
+            </small>
+            <div className="d-flex flex-column gap-2">
+              {stage.resources.map((resource, i) => (
+                <a 
+                  key={i} 
+                  href={resource.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn btn-outline-success btn-sm px-3 py-2 rounded-pill w-100 text-start shadow-sm"
+                >
+                  <i className="bi bi-box-arrow-up-right me-2"></i>
+                  <span className="small fw-medium">{resource.platform}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Action Buttons Footer */}
+      <div className="card-footer bg-white border-0 pt-0 pb-3 px-4">
+        <div className="d-flex gap-2 flex-wrap">
+          <button 
+            onClick={() => onProgress(index, 1.0)} 
+            className={`px-3 py-2 rounded-pill flex-fill shadow-sm transition-all ${
+              isCompleted ? 'btn-success' : 'btn-outline-success border-2'
+            }`}
+            disabled={isCompleted}
+          >
+            <i className={`bi ${isCompleted ? 'bi-check-lg' : 'bi-check-circle'} me-1`}></i>
+            {isCompleted ? 'Completed ✓' : 'Mark Complete'}
+          </button>
+          
+          <button 
+            onClick={() => onProgress(index, 0.5)}
+            className={`px-3 py-2 rounded-pill flex-fill shadow-sm transition-all ${
+              progress === 0.5 ? 'btn-warning' : 'btn-outline-warning border-2'
+            }`}
+            disabled={isCompleted}
+          >
+            <i className={`bi ${progress === 0.5 ? 'bi-half-circle-fill' : 'bi-circle-half'} me-1`}></i>
+            {progress === 0.5 ? '50% ✓' : '50% Done'}
+          </button>
+          
+          <button 
+            onClick={() => onProgress(index, 0.0)}
+            className="btn btn-outline-secondary px-3 py-2 rounded-pill flex-fill shadow-sm"
+            disabled={isCompleted}
+          >
+            <i className="bi bi-arrow-counterclockwise me-1"></i>
+            Reset
+          </button>
+        </div>
+        
+        {showSuccess && (
+          <div className="mt-3 p-2 bg-success-subtle border border-success-subtle rounded-3 text-center">
+            <i className="bi bi-check-circle-fill text-success me-1"></i>
+            <small className="fw-semibold text-success">Progress updated successfully!</small>
           </div>
         )}
       </div>
