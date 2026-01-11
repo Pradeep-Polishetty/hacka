@@ -4,7 +4,7 @@ const RoadmapSchema = new mongoose.Schema(
   {
     roadmapId: { type: String, required: true, unique: true },
     userData: {
-      year: String,
+      year: Number,
       skills: [String],
       companies: [String]
     },

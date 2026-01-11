@@ -1,40 +1,68 @@
 export const roadmapApi = {
-  async generate(userData) {
-    const res = await fetch('/api/roadmaps/generate', {  // ← Proxy /api → backend
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    });
-    // console.log('Response from generate:', res);
+  // ✅ Generate roadmap
+  async generate(formData = {}) {
+    const payload = {
+      year:
+        typeof formData.year === 'string'
+          ? parseInt(formData.year)
+          : formData.year || new Date().getFullYear(),
+
+      skills: typeof formData.skills === 'string'
+        ? formData.skills.split(',').map(s => s.trim()).filter(Boolean)
+        : [],
+
+      companies: typeof formData.companies === 'string'
+        ? formData.companies.split(',').map(c => c.trim()).filter(Boolean)
+        : []
+    };
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/roadmaps/generate`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    );
+
     if (!res.ok) {
       const error = await res.text();
-      throw new Error(`Generation failed: ${error}`);
+      throw new Error(error);
     }
+
     return res.json();
   },
 
+  // ✅ Get roadmap by ID (FIXES YOUR ERROR)
   async get(id) {
-    console.log("Gbggg")
-    const res = await fetch(`/api/roadmaps/${id}`);
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/roadmaps/${id}`
+    );
+
     if (!res.ok) {
       const error = await res.text();
-      throw new Error(`Roadmap not found: ${error}`);
+      throw new Error(error);
     }
+
     return res.json();
   },
 
-  async update( id,log) {
-    console.log("Gngg-11",log)
-    console.log("data sent--",JSON.stringify(log))
-    const res = await fetch(`/api/roadmaps/${id}/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(log)
-    });
+  // ✅ Update progress
+  async update(id, log) {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/roadmaps/${id}/update`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(log)
+      }
+    );
+
     if (!res.ok) {
       const error = await res.text();
-      throw new Error(`Update failed: ${error}`);
+      throw new Error(error);
     }
+
     return res.json();
   }
 };
