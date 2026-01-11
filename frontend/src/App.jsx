@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Form from './components/Form';
 import Dashboard from './components/Dashboard';
 import { roadmapApi } from './api/roadmaps';
-import './App.css';
+//import './App.css';
 
 function App() {
   const [roadmaps, setRoadmaps] = useState([]);
@@ -11,7 +11,7 @@ function App() {
   const generateRoadmap = async (userData) => {
     const data = await roadmapApi.generate(userData);
 
-    setRoadmaps(prev => [...prev, data]); // ✅ FIXED
+    setRoadmaps(prev => [...prev, data]);  
     return data.id;
   };
 
